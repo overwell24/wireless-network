@@ -1,0 +1,18 @@
+current directory: /Users/taekyou/WLNproject/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+/usr/local/opt/ruby/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/taekyou/WLNproject/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20241105-3246-52mdcf sitelibdir\=./.gem.20241105-3246-52mdcf clean
+
+current directory: /Users/taekyou/WLNproject/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20241105-3246-52mdcf sitelibdir\=./.gem.20241105-3246-52mdcf
+compiling nkf.c
+linking shared-object nkf.bundle
+
+current directory: /Users/taekyou/WLNproject/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20241105-3246-52mdcf sitelibdir\=./.gem.20241105-3246-52mdcf install
+/usr/bin/install -c -m 0755 nkf.bundle ./.gem.20241105-3246-52mdcf
+
+current directory: /Users/taekyou/WLNproject/vendor/bundle/ruby/3.3.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20241105-3246-52mdcf sitelibdir\=./.gem.20241105-3246-52mdcf clean
