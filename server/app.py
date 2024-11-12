@@ -1,15 +1,27 @@
 from flask import Flask
+from db import db  
+from routers.api import api_bp
+import os
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-@app.route('/api/cafes', methods=['GET'])
-def get_cafes():
-    pass
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{BASE_DIR}/instance/cafes.db"
 
-@app.route('/api/cafes/<int:cafe_id>', methods=['GET'])
-def get_cafe_by_id(cafe_id):
-    pass
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.register_blueprint(api_bp, url_prefix='/api')
 
-@app.route('/api/cafe/table-status', methods=['POST'])
-def update_table_status():
-    pass
+     # 데이터베이스 초기화
+    db.init_app(app)
+
+    # 데이터베이스 테이블 생성
+    with app.app_context():
+        db.create_all()
+
+    return app
+
+
+if __name__ == "__main__":
+    app = create_app()
+    app.run(debug=True)
