@@ -29,26 +29,28 @@ class Location(db.Model):
 class Cafe(db.Model):
     __tablename__ = 'cafes'
     cafe_id = db.Column(db.Integer, primary_key=True)  # 고유 cafe_id
-    cafe_name = db.Column(db.String(100), nullable=False)  # 카페 이름
+    cafe_name = db.Column(db.String(100), nullable=False)  # 카페 이름 
+    cafe_address = db.Column(db.String(100), nullable=False) # 카페 주소
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=False)  # Location과 연결되는 외래키
 
     # 테이블 상태를 저장할 JSON 컬럼 (예: 테이블 번호와 상태)
     tables_occupied_status = db.Column(JSON, nullable=False, default={})
 
     # Cafe 객체 초기화
-    def __init__(self, cafe_name, location, num_tables=0):
+    def __init__(self, cafe_name, cafe_address, location, num_tables=0):
         self.cafe_name = cafe_name
+        self.cafe_address = cafe_address
         self.location = location
         self.tables_occupied_status = self._initialize_tables(num_tables)
 
     # Cafe 객체를 생성하는 class method
     @classmethod
-    def create_with_location(cls, cafe_name, lat, lng, num_tables=0):
+    def create_with_location(cls, cafe_name, cafe_address, lat, lng, num_tables=0):
         # Location 객체를 먼저 생성
         location = Location.create(lat, lng)
         
         # Cafe 객체 생성
-        new_cafe = cls(cafe_name=cafe_name, location=location, num_tables=num_tables)
+        new_cafe = cls(cafe_name=cafe_name, cafe_address=cafe_address, location=location, num_tables=num_tables)
         
         # Cafe 객체 DB에 저장
         db.session.add(new_cafe)

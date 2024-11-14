@@ -12,11 +12,13 @@ def get_cafes():
         {
             "cafe_id": cafe.cafe_id,
             "cafe_name": cafe.cafe_name,
+            "cafe_address": cafe.cafe_address,
             "lat": cafe.location.lat,
             "lng": cafe.location.lng
         }
         for cafe in cafes
     ]
+    print(cafes[0].cafe_address)
     return jsonify(cafe_list)
 
 
@@ -30,11 +32,12 @@ def get_cafe_by_id(cafe_id):
     cafe_data = {
         "cafe_id": cafe.cafe_id,
         "cafe_name": cafe.cafe_name,
+        "cafe_address": cafe.cafe_address,
         "lat": cafe.location.lat,
         "lng": cafe.location.lng,
         "tables_occupied_status": cafe.tables_occupied_status  # 테이블 상태 포함
     }
-    
+
     return jsonify(cafe_data)
 
 
