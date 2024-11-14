@@ -4,7 +4,7 @@ import json
 
 api_bp = Blueprint('api', __name__, url_prefix='/api') 
 
-# 카페 목록 조회
+# 카페 목록 리스트 조회 
 @api_bp.route('/cafes', methods=['GET'])
 def get_cafes():
     cafes = Cafe.query.all()  # 모든 카페 조회
@@ -22,7 +22,7 @@ def get_cafes():
     return cafe_data_list_json
 
 
-# 카페 ID로 카페 조회
+# 특정 카페 조회 
 @api_bp.route('/cafes/<int:cafe_id>', methods=['GET'])
 def get_cafe_by_id(cafe_id):
     cafe = Cafe.query.get(cafe_id)  # 특정 cafe_id에 해당하는 카페 조회
@@ -35,14 +35,19 @@ def get_cafe_by_id(cafe_id):
         "cafe_address": cafe.cafe_address,
         "lat": cafe.location.lat,
         "lng": cafe.location.lng,
-        "tables_occupied_status": cafe.tables_occupied_status  # 테이블 상태 포함
+        "tables_occupied_status": cafe.tables_occupied_status  
     }
 
     cafe_data_json = json.dumps(cafe_data, ensure_ascii=False)
     return cafe_data_json
 
+# 특정 카페의 테이블 상태를 실시간 조회
+@api_bp.route('/cafes/<int:cafe_id>/tables', methods=['GET'])
+def get_table_occupied_status(cafe_id):
+    cafe = Cafe.query.get(cafe_id)  
+    return json.dumps(cafe.tables_occupied_status, ensure_ascii=False)
 
-# 테이블 상태 업데이트
+# 테이블 상태 실시간 업데이트
 @api_bp.route('/cafe/table-occupied-status', methods=['POST'])
 def update_table_occupied_status():
     data = request.get_json()  # 요청 본문에서 JSON 데이터 가져오기
@@ -71,3 +76,4 @@ def update_table_occupied_status():
         cafe.update_occupied_table_status(table_id, table_occupied_status)
 
     return json.dumps({"message": "테이블 상태가 성공적으로 업데이트되었습니다."}, ensure_ascii=False), 200
+
