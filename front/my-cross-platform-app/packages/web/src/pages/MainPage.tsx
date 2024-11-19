@@ -123,7 +123,7 @@ const fadeInUp = keyframes`
 
 // 메인 컨테이너
 const Container = styled.div`
-  min-height: 100vh;
+  min-height: 170vh;
   background: ${theme.colors.background};
   display: flex;
   flex-direction: column;
@@ -150,7 +150,7 @@ const ContentWrapper = styled.div`
 // 히어로 섹션
 const HeroSection = styled.section`
   position: relative;
-  height: 70vh; /* 높이 증가 */
+  height: 90vh; /* 높이 증가 */
   background: url(${heroBackground}) center center/cover no-repeat;
   border-radius: 20px;
   overflow: hidden;
