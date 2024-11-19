@@ -16,7 +16,7 @@ import {
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
-
+//dddd
   return (
     <Container>
       <ContentWrapper>
