@@ -1,4 +1,3 @@
-// src/pages/CafeListPage.tsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
@@ -14,7 +13,31 @@ interface KakaoPlace {
   x: string;
   y: string;
   place_url: string;
+  is_test?: boolean;
 }
+
+// 테스트용 위치 데이터
+const TEST_LOCATIONS = [
+  {
+    id: 'test-1',
+    place_name: "4호관 405호",
+    category_name: "카페",
+    phone: "",
+    address_name: "인천광역시 미추홀구 인하로 100 인하공업전문대학 4호관 1층",
+    road_address_name: "인천광역시 미추홀구 인하로 100 인하공업전문대학 4호관 1층",
+    x: "126.658518",
+    y: "37.448201",
+    place_url: "#",
+    is_test: true,
+    tables_occupied_status: {
+      table_1: 0,
+      table_2: 1,
+      table_3: 1,
+      table_4: 0,
+      table_5: 0,
+    }
+  }
+];
 
 const CafeListPage = () => {
   const [cafes, setCafes] = useState<KakaoPlace[]>([]);
@@ -25,12 +48,11 @@ const CafeListPage = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          searchNearbyCafes(position.coords.latitude, position.coords.longitude);
+          searchNearbyCafes(37.448201, 126.658518); // 인하공전 4호관 위치로 고정
         },
         (error) => {
           console.error('위치 정보 가져오기 실패:', error);
-          // 기본 위치(강남역)로 검색
-          searchNearbyCafes(37.498095, 127.027610);
+          searchNearbyCafes(37.448201, 126.658518); // 인하공전 4호관 위치로 고정
         }
       );
     }
@@ -43,7 +65,14 @@ const CafeListPage = () => {
       'CE7',
       (data, status) => {
         if (status === window.kakao.maps.services.Status.OK) {
-          setCafes(data);
+          // 실제 카페에 is_test: false 추가
+          const realCafes = data.map(cafe => ({
+            ...cafe,
+            is_test: false
+          }));
+          
+          // 실제 카페와 테스트 위치 합치기
+          setCafes([...realCafes, ...TEST_LOCATIONS]);
           setLoading(false);
         } else {
           setError('주변 카페를 찾을 수 없습니다.');
@@ -58,15 +87,29 @@ const CafeListPage = () => {
     );
   };
 
-  // 더미 데이터에서 혼잡도 가져오기
+  // 혼잡도 계산
   const getCrowdedness = (cafeId: string) => {
-    const mockCafe = mockCafes.find(cafe => cafe.cafe_id.toString() === cafeId);
-    if (!mockCafe?.tables_occupied_status) return 0;
+    // 테스트 위치의 경우
+    if (cafeId.startsWith('test-')) {
+      const testLocation = TEST_LOCATIONS.find(loc => loc.id === cafeId);
+      if (!testLocation?.tables_occupied_status) return 0;
+      
+      const totalTables = Object.keys(testLocation.tables_occupied_status).length;
+      const occupiedTables = Object.values(testLocation.tables_occupied_status)
+        .filter(status => status === 1).length;
+      return Math.round((occupiedTables / totalTables) * 100);
+    }
     
-    const totalTables = Object.keys(mockCafe.tables_occupied_status).length;
-    const occupiedTables = Object.values(mockCafe.tables_occupied_status)
-      .filter(status => status === 1).length;
-    return Math.round((occupiedTables / totalTables) * 100);
+    // 실제 카페의 경우 mock 데이터나 랜덤 값 사용
+    const mockCafe = mockCafes.find(cafe => cafe.cafe_id.toString() === cafeId);
+    if (mockCafe?.tables_occupied_status) {
+      const totalTables = Object.keys(mockCafe.tables_occupied_status).length;
+      const occupiedTables = Object.values(mockCafe.tables_occupied_status)
+        .filter(status => status === 1).length;
+      return Math.round((occupiedTables / totalTables) * 100);
+    }
+    
+    return Math.floor(Math.random() * 100);
   };
 
   const getCrowdednessColor = (crowdedness: number) => {
@@ -88,7 +131,7 @@ const CafeListPage = () => {
         {cafes.map(cafe => {
           const crowdedness = getCrowdedness(cafe.id);
           return (
-            <CafeCard key={cafe.id}>
+            <CafeCard key={cafe.id} isTest={cafe.is_test}>
               <CafeInfo>
                 <CafeName>{cafe.place_name}</CafeName>
                 <AddressText>
@@ -115,12 +158,14 @@ const CafeListPage = () => {
                 >
                   상세정보
                 </ActionButton>
-                <ActionButton 
-                  onClick={() => window.open(cafe.place_url, '_blank')}
-                  secondary
-                >
-                  카카오맵
-                </ActionButton>
+                {!cafe.is_test && (
+                  <ActionButton 
+                    onClick={() => window.open(cafe.place_url, '_blank')}
+                    secondary
+                  >
+                    카카오맵
+                  </ActionButton>
+                )}
               </ButtonGroup>
             </CafeCard>
           );
@@ -165,11 +210,12 @@ const CafeList = styled.div`
   gap: 16px;
 `;
 
-const CafeCard = styled.div`
+const CafeCard = styled.div<{ isTest?: boolean }>`
   background: white;
   border-radius: 12px;
   padding: 20px;
   box-shadow: ${theme.shadows.medium};
+  border: ${props => props.isTest ? `2px solid ${theme.colors.primary}` : 'none'};
 `;
 
 const CafeInfo = styled.div`
