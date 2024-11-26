@@ -1,13 +1,18 @@
 from flask import Flask
 from db import db  
 from routers.api import api_bp
-import os
+import os, sys
 import query_list 
 
 def create_app():
     app = Flask(__name__)
+    
+    # Flask 애플리케이션 시작 시, PYTHONPATH 설정
+    project_path = os.path.abspath(os.path.dirname(__file__))  # 프로젝트 디렉토리 경로
+    sys.path.append(project_path)  # PYTHONPATH에 추가
+    
+    # DB path 설정 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{BASE_DIR}/instance/cafes.db"
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
