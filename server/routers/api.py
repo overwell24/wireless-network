@@ -42,6 +42,6 @@ def update_table_occupied_status():
 @api_bp.after_request
 def add_csp_header(response):
     response.headers['Content-Security-Policy'] = (
-        "default-src *; script-src *; connect-src *; img-src *; style-src *; font-src *"
+        "default-src *; connect-src *"
     )
     return response
