@@ -40,8 +40,11 @@ def update_table_occupied_status():
     return json.dumps({"message": "테이블 상태가 성공적으로 업데이트되었습니다."}, ensure_ascii=False), 200
 
 @api_bp.after_request
-def add_csp_header(response):
+def add_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     response.headers['Content-Security-Policy'] = (
-        "default-src *; connect-src *"
+        "default-src 'self'; connect-src 'self' http://15.165.161.251"
     )
     return response
