@@ -38,3 +38,10 @@ def update_table_occupied_status():
         return json.dumps({"error": "카페를 찾을 수 없습니다."}, ensure_ascii=False), 404
     
     return json.dumps({"message": "테이블 상태가 성공적으로 업데이트되었습니다."}, ensure_ascii=False), 200
+
+@api_bp.after_request
+def add_csp_header(response):
+    response.headers['Content-Security-Policy'] = (
+        "default-src *; script-src *; connect-src *; img-src *; style-src *; font-src *"
+    )
+    return response
