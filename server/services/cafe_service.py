@@ -10,7 +10,8 @@ class CafeService:
                 "cafe_name": cafe.cafe_name,
                 "cafe_address": cafe.cafe_address,
                 "lat": cafe.location.lat,
-                "lng": cafe.location.lng
+                "lng": cafe.location.lng,
+                "table_status": cafe.tables_occupied_status
             }
             for cafe in cafes
         ]
