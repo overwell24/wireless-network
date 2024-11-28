@@ -3,9 +3,14 @@ from db import db
 from routers.api import api_bp
 import os, sys
 import query_list 
+import logging
 
 def create_app():
     app = Flask(__name__)
+    
+    # loggin 설정
+    logging.basicConfig()
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     
     # Flask 애플리케이션 시작 시, PYTHONPATH 설정
     project_path = os.path.abspath(os.path.dirname(__file__))  # 프로젝트 디렉토리 경로

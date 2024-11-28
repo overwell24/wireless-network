@@ -1,5 +1,6 @@
 from db import db
 from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.orm.attributes import flag_modified
 
 # Location 테이블 정의
 class Location(db.Model):
@@ -57,12 +58,27 @@ class Cafe(db.Model):
         db.session.commit()
         
         return new_cafe
+    
     # 테이블 수에 맞는 초기 상태(JSON 구조) 생성
     def _initialize_tables(self, num_tables):
         return {f"table_{i+1}": 0 for i in range(num_tables)}  # 모든 테이블의 상태를 0(빈자리)으로 초기화
 
     # 특정 테이블의 상태를 업데이트하는 메서드
-    def update_occupied_table_status(self, table_number, status):
-        table_key = f"table_{table_number}"  # 테이블 번호로 키 생성
-        self.tables_occupied_status[table_key] = status  # 상태 업데이트
-        db.session.commit()  # 변경 사항 저장
+    def update_occupied_table_status(self, table_id, status):
+        try:
+            # JSON 컬럼 업데이트
+            self.tables_occupied_status[table_id] = status
+            flag_modified(self, "tables_occupied_status")
+            db.session.commit()
+            
+            # 세션에 변경사항 추가
+            #db.session.add(self)
+            db.session.commit()
+
+            print(f"Updated table {table_id} status to {status}")
+            return True
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error updating table status: {e}")
+            return False

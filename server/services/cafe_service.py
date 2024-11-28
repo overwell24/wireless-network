@@ -43,5 +43,6 @@ class CafeService:
         if not cafe:
             return None
         for table_id, status in table_statuses.items():
+            print(f"service: {table_id}: {status}")
             cafe.update_occupied_table_status(table_id, status)
         return True
