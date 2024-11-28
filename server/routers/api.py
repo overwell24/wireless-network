@@ -5,13 +5,13 @@ import json
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 # 카페 리스트 반환
-@api_bp.route('/cafes', methods=['GET'])
+@api_bp.route('/cafes', methods=['GET', 'OPTIONS'])
 def get_cafes():
     cafe_data_list = CafeService.get_all_cafes()
     return json.dumps(cafe_data_list, ensure_ascii=False)
 
 # 특정 카페 반환
-@api_bp.route('/cafes/<int:cafe_id>', methods=['GET'])
+@api_bp.route('/cafes/<int:cafe_id>', methods=['GET', 'OPTIONS'])
 def get_cafe_by_id(cafe_id):
     cafe_data = CafeService.get_cafe_by_id(cafe_id)
     if not cafe_data:
@@ -19,7 +19,7 @@ def get_cafe_by_id(cafe_id):
     return json.dumps(cafe_data, ensure_ascii=False)
 
 # 특정 카페의 테이블 상태 조회
-@api_bp.route('/cafes/<int:cafe_id>/tables', methods=['GET'])
+@api_bp.route('/cafes/<int:cafe_id>/tables', methods=['GET', 'OPTIONS'])
 def get_table_occupied_status(cafe_id):
     table_status = CafeService.get_table_status(cafe_id)
     if table_status is None:
@@ -27,7 +27,7 @@ def get_table_occupied_status(cafe_id):
     return json.dumps(table_status, ensure_ascii=False)
 
 # 특정 카페 테이블 상태 업데이트
-@api_bp.route('/cafe/table-occupied-status', methods=['POST'])
+@api_bp.route('/cafe/table-occupied-status', methods=['POST', 'OPTIONS'])
 def update_table_occupied_status():
     data = request.get_json()
     cafe_id = data['cafe_id']
