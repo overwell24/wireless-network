@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Map as KakaoMap, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
-import styled from 'styled-components';
 import { theme } from '../styles/theme';
 import coffeeIcon from '../assets/coffee-icon.png';
+import styled, { DefaultTheme } from 'styled-components';
+
+type TransientProps = {
+  $isOccupied: boolean;
+};
+
 
 interface KakaoPlace {
   id: string;
@@ -35,8 +40,8 @@ const TEST_LOCATIONS: TestLocation[] = [
   {
     id: 'test-1',
     place_name: "4호관 405호",
-    lat: 37.448201,
-    lng: 126.658518,
+    lat: 37.4504,
+    lng: 126.654,
     address_name: "인천광역시 미추홀구 인하로 100 인하공업전문대학 4호관 1층",
     tables_occupied_status: {
       table_1: 0,
@@ -44,10 +49,16 @@ const TEST_LOCATIONS: TestLocation[] = [
       table_3: 1,
       table_4: 0,
       table_5: 0,
+      table_6: 0,
+      table_7: 1,
+      table_8: 0,
+      table_9: 1,
+      table_10: 0
     },
     is_test: true
   }
 ];
+
 
 // 실제 카페용 더미 좌석 데이터를 생성하는 함수
 const generateDummySeats = (cafeId: string): TableStatus => {
@@ -79,10 +90,10 @@ const SeatLayout = ({ tableStatus }: { tableStatus: TableStatus }) => {
       <SeatTitle>좌석 배치도</SeatTitle>
       <SeatGrid>
         {Object.entries(tableStatus).map(([table, status]) => (
-          <SeatItem key={table} isOccupied={status === 1}>
-            {table.replace('table_', '번 ')}
-            {status === 1 ? '사용중' : '빈자리'}
-          </SeatItem>
+          <SeatItem key={table} $isOccupied={status === 1}>
+          {table.replace('table_', '번 ')}
+          {status === 1 ? '사용중' : '빈자리'}
+        </SeatItem>
         ))}
       </SeatGrid>
     </SeatContainer>
@@ -96,7 +107,7 @@ const MapPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState({
     lat: 37.448201,
-    lng: 126.658518
+    lng: 126.654
   });
 
   const userLocationRef = useRef(userLocation);
@@ -109,25 +120,53 @@ const MapPage = () => {
       setLoading(false);
       return;
     }
-
+  
     const ps = new window.kakao.maps.services.Places();
-    
+  
     ps.categorySearch(
       'CE7',
       (data, status) => {
         if (status === window.kakao.maps.services.Status.OK) {
           const realCafes = data.map(cafe => {
-            // 각 카페마다 더미 좌석 데이터 생성
-            if (!cafeSeatsMap.has(cafe.id)) {
-              cafeSeatsMap.set(cafe.id, generateDummySeats(cafe.id));
+            const typedCafe = cafe as KakaoPlace;
+  
+            // 필요 시 좌석 데이터 더미 생성
+            if (!cafeSeatsMap.has(typedCafe.id)) {
+              cafeSeatsMap.set(typedCafe.id, generateDummySeats(typedCafe.id));
             }
             return {
-              ...cafe,
-              is_test: false
+              ...typedCafe,
+              is_test: false, // 실제 카페 데이터
             };
           });
-
-          const testCafes = TEST_LOCATIONS.map(loc => ({
+  
+          // TEST_LOCATIONS 데이터를 KakaoPlace 형식으로 변환
+          const testCafes: KakaoPlace[] = TEST_LOCATIONS.map(loc => ({
+            id: loc.id,
+            place_name: loc.place_name,
+            category_name: '카페', // KakaoPlace 필드 추가
+            phone: '', // KakaoPlace 필드 추가
+            address_name: loc.address_name,
+            road_address_name: loc.address_name,
+            x: loc.lng.toString(), // KakaoPlace에서 x는 string 타입
+            y: loc.lat.toString(), // KakaoPlace에서 y는 string 타입
+            place_url: '#', // KakaoPlace 필드 추가
+            is_test: true, // 테스트 데이터
+          }));
+  
+          // realCafes에 포함되지 않은 테스트 데이터 추가
+          const mergedCafes = [
+            ...realCafes,
+            ...testCafes.filter(
+              testCafe => !realCafes.some(realCafe => realCafe.id === testCafe.id)
+            ),
+          ];
+  
+          setCafes(mergedCafes); // 병합된 데이터 설정
+          setLoading(false);
+        } else {
+          // API 호출 실패 시 테스트 데이터만 표시
+          const testCafes: KakaoPlace[] = TEST_LOCATIONS.map(loc => ({
             id: loc.id,
             place_name: loc.place_name,
             category_name: '카페',
@@ -137,12 +176,9 @@ const MapPage = () => {
             x: loc.lng.toString(),
             y: loc.lat.toString(),
             place_url: '#',
-            is_test: true
+            is_test: true,
           }));
-
-          setCafes([...realCafes, ...testCafes]);
-          setLoading(false);
-        } else {
+          setCafes(testCafes);
           setError('주변 카페를 찾을 수 없습니다.');
           setLoading(false);
         }
@@ -150,10 +186,14 @@ const MapPage = () => {
       {
         location: new window.kakao.maps.LatLng(lat, lng),
         radius: 1000,
-        sort: window.kakao.maps.services.SortBy.DISTANCE
+        sort: window.kakao.maps.services.SortBy.DISTANCE,
       }
     );
   };
+  
+  
+  
+  
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -178,14 +218,13 @@ const MapPage = () => {
     if (cafeId.startsWith('test-')) {
       const testLocation = TEST_LOCATIONS.find(loc => loc.id === cafeId);
       if (!testLocation?.tables_occupied_status) return 0;
-      
+  
       const totalTables = Object.keys(testLocation.tables_occupied_status).length;
       const occupiedTables = Object.values(testLocation.tables_occupied_status)
         .filter(status => status === 1).length;
       return Math.round((occupiedTables / totalTables) * 100);
     }
-    
-    // 실제 카페의 경우 좌석 데이터 기반으로 혼잡도 계산
+  
     const tableStatus = cafeSeatsMap.get(cafeId);
     if (tableStatus) {
       const totalTables = Object.keys(tableStatus).length;
@@ -193,9 +232,10 @@ const MapPage = () => {
         .filter(status => status === 1).length;
       return Math.round((occupiedTables / totalTables) * 100);
     }
-    
+  
     return 0;
   };
+  
 
   const getTableStatus = (cafeId: string): TableStatus | null => {
     if (cafeId.startsWith('test-')) {
@@ -245,8 +285,8 @@ const MapPage = () => {
                 yAnchor={1.5}
               >
                 <MarkerLabel 
-                  crowdedness={crowdedness}
-                  isTest={cafe.is_test}
+                  $crowdedness={crowdedness}
+                  $isTest={cafe.is_test}
                 >
                   {cafe.is_test ? '테스트' : `${crowdedness}%`}
                 </MarkerLabel>
@@ -326,22 +366,22 @@ const ErrorMessage = styled.div`
   z-index: 1000;
 `;
 
-const MarkerLabel = styled.div<{ crowdedness: number; isTest?: boolean }>`
-  background: ${props => {
-    if (props.isTest) {
-      return '#FFD700';
-    }
-    if (props.crowdedness >= 80) return theme.colors.primary;
-    if (props.crowdedness >= 50) return theme.colors.secondary;
+const MarkerLabel = styled.div<{ $crowdedness: number; $isTest?: boolean }>`
+  background: ${({ $crowdedness, $isTest }) => {
+    if ($isTest) return '#FFD700';
+    if ($crowdedness >= 80) return theme.colors.primary;
+    if ($crowdedness >= 50) return theme.colors.secondary;
     return theme.colors.tertiary;
   }};
+
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: bold;
-  border: ${props => props.isTest ? '2px solid #fff' : 'none'};
+  border: ${props => props.$isTest ? '2px solid #fff' : 'none'}; // $isTest 사용
 `;
+
 
 const InfoPanel = styled.div`
   position: absolute;
@@ -445,14 +485,15 @@ const SeatGrid = styled.div`
   gap: 10px;
 `;
 
-const SeatItem = styled.div<{ isOccupied: boolean }>`
+const SeatItem = styled.div<{ $isOccupied: boolean }>`
   padding: 8px;
-  background: ${props => props.isOccupied ? theme.colors.primary : theme.colors.tertiary};
+  background: ${props => props.$isOccupied ? theme.colors.primary : theme.colors.tertiary};
   color: white;
   border-radius: 4px;
   text-align: center;
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
 `;
+
 
 export default MapPage;

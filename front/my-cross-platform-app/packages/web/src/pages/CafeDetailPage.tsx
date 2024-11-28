@@ -1,76 +1,81 @@
 // src/pages/CafeDetailPage.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { cafeApi } from '../services/api';
 import { theme } from '../styles/theme';
+
 
 interface Seat {
   id: string;
-  x: number;
-  y: number;
   isOccupied: boolean;
 }
 
-// 더미 데이터: 4호관 405호의 좌석 배치
-const DUMMY_SEATS: Seat[] = [
-  { id: 'table_1', x: 20, y: 20, isOccupied: false },
-  { id: 'table_2', x: 100, y: 20, isOccupied: true },
-  { id: 'table_3', x: 180, y: 20, isOccupied: true },
-  { id: 'table_4', x: 20, y: 100, isOccupied: false },
-  { id: 'table_5', x: 100, y: 100, isOccupied: false },
-  // 필요한 만큼 좌석 추가
-];
-
 const CafeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const [seats, setSeats] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  // API에서 좌석 데이터 가져오기
+  useEffect(() => {
+    const fetchCafeDetails = async () => {
+      try {
+        const data = await cafeApi.getCafeDetails(Number(id)); // 반환값은 Record<string, number>
+        console.log('API Data:', data); // 데이터 확인
+        setSeats(data); // 좌석 상태로 설정
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch cafe details:', error);
+        setSeats({}); // 기본값으로 빈 객체 설정
+        setLoading(false);
+      }
+    };
+  
+    fetchCafeDetails();
+  }, [id]);
+  
 
   // 혼잡도 계산
   const calculateCrowdedness = () => {
-    const occupiedSeats = DUMMY_SEATS.filter(seat => seat.isOccupied).length;
-    return Math.round((occupiedSeats / DUMMY_SEATS.length) * 100);
+    if (Object.keys(seats).length === 0) return 0; // 좌석 데이터가 없으면 혼잡도 0%
+    const occupiedSeats = Object.values(seats).filter(status => status === 1).length;
+    return Math.round((occupiedSeats / Object.keys(seats).length) * 100);
   };
+  
 
   return (
     <Container>
-      <Header>
-        <Title>4호관 405호</Title>
-        <CrowdednessIndicator>
-          현재 혼잡도: {calculateCrowdedness()}%
-        </CrowdednessIndicator>
-      </Header>
+      {loading ? (
+        <div>로딩 중...</div>
+      ) : (
+        <>
+          <Header>
+            <Title>카페 상세정보</Title>
+            <CrowdednessIndicator>
+              현재 혼잡도: {calculateCrowdedness()}%
+            </CrowdednessIndicator>
+          </Header>
 
-      <SeatMapContainer>
-        <MapTitle>좌석 배치도</MapTitle>
-        <SeatMap>
-          {DUMMY_SEATS.map(seat => (
-            <Seat
-              key={seat.id}
-              style={{
-                left: `${seat.x}px`,
-                top: `${seat.y}px`
-              }}
-              isOccupied={seat.isOccupied}
-            >
-              <SeatLabel>{seat.id}</SeatLabel>
-              <SeatStatus>{seat.isOccupied ? '사용중' : '빈좌석'}</SeatStatus>
-            </Seat>
-          ))}
-        </SeatMap>
-      </SeatMapContainer>
-
-      <Legend>
-        <LegendItem>
-          <LegendColor isOccupied={false} />
-          <span>빈좌석</span>
-        </LegendItem>
-        <LegendItem>
-          <LegendColor isOccupied={true} />
-          <span>사용중</span>
-        </LegendItem>
-      </Legend>
+          <SeatMapContainer>
+            <MapTitle>좌석 배치도</MapTitle>
+            <SeatMap>
+              {Object.entries(seats).map(([seatId, isOccupied]) => (
+                <Seat
+                  key={seatId}
+                  $isOccupied={isOccupied === 1}
+                >
+                  <SeatLabel>{seatId}</SeatLabel>
+                  <SeatStatus>{isOccupied === 1 ? '사용중' : '빈좌석'}</SeatStatus>
+                </Seat>
+              ))}
+            </SeatMap>
+          </SeatMapContainer>
+        </>
+      )}
     </Container>
   );
 };
+
 
 const Container = styled.div`
   max-width: 800px;
@@ -116,11 +121,11 @@ const SeatMap = styled.div`
   margin: 20px 0;
 `;
 
-const Seat = styled.div<{ isOccupied: boolean }>`
+const Seat = styled.div<{ $isOccupied: boolean }>`
   position: absolute;
   width: 60px;
   height: 60px;
-  background: ${props => props.isOccupied ? theme.colors.primary : theme.colors.tertiary};
+  background: ${props => props.$isOccupied ? theme.colors.primary : theme.colors.tertiary};
   border-radius: 8px;
   display: flex;
   flex-direction: column;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
-import { mockCafes } from '../mocks/cafeData';
+import { cafeApi } from '../services/api'; // API 호출 추가
 
 interface KakaoPlace {
   id: string;
@@ -29,13 +29,6 @@ const TEST_LOCATIONS = [
     y: "37.448201",
     place_url: "#",
     is_test: true,
-    tables_occupied_status: {
-      table_1: 0,
-      table_2: 1,
-      table_3: 1,
-      table_4: 0,
-      table_5: 0,
-    }
   }
 ];
 
@@ -60,7 +53,7 @@ const CafeListPage = () => {
 
   const searchNearbyCafes = (lat: number, lng: number) => {
     const ps = new window.kakao.maps.services.Places();
-    
+
     ps.categorySearch(
       'CE7',
       (data, status) => {
@@ -91,25 +84,10 @@ const CafeListPage = () => {
   const getCrowdedness = (cafeId: string) => {
     // 테스트 위치의 경우
     if (cafeId.startsWith('test-')) {
-      const testLocation = TEST_LOCATIONS.find(loc => loc.id === cafeId);
-      if (!testLocation?.tables_occupied_status) return 0;
-      
-      const totalTables = Object.keys(testLocation.tables_occupied_status).length;
-      const occupiedTables = Object.values(testLocation.tables_occupied_status)
-        .filter(status => status === 1).length;
-      return Math.round((occupiedTables / totalTables) * 100);
+      return Math.floor(Math.random() * 100);
     }
-    
-    // 실제 카페의 경우 mock 데이터나 랜덤 값 사용
-    const mockCafe = mockCafes.find(cafe => cafe.cafe_id.toString() === cafeId);
-    if (mockCafe?.tables_occupied_status) {
-      const totalTables = Object.keys(mockCafe.tables_occupied_status).length;
-      const occupiedTables = Object.values(mockCafe.tables_occupied_status)
-        .filter(status => status === 1).length;
-      return Math.round((occupiedTables / totalTables) * 100);
-    }
-    
-    return Math.floor(Math.random() * 100);
+    // 실제 데이터는 API 호출
+    return Math.floor(Math.random() * 100); // Mock 데이터 유지
   };
 
   const getCrowdednessColor = (crowdedness: number) => {
@@ -131,7 +109,7 @@ const CafeListPage = () => {
         {cafes.map(cafe => {
           const crowdedness = getCrowdedness(cafe.id);
           return (
-            <CafeCard key={cafe.id} isTest={cafe.is_test}>
+            <CafeCard key={cafe.id} $isTest={cafe.is_test}>
               <CafeInfo>
                 <CafeName>{cafe.place_name}</CafeName>
                 <AddressText>
@@ -161,7 +139,7 @@ const CafeListPage = () => {
                 {!cafe.is_test && (
                   <ActionButton 
                     onClick={() => window.open(cafe.place_url, '_blank')}
-                    secondary
+                    $secondary
                   >
                     카카오맵
                   </ActionButton>
@@ -174,6 +152,7 @@ const CafeListPage = () => {
     </Container>
   );
 };
+
 
 const Container = styled.div`
   max-width: 800px;
@@ -210,12 +189,12 @@ const CafeList = styled.div`
   gap: 16px;
 `;
 
-const CafeCard = styled.div<{ isTest?: boolean }>`
+const CafeCard = styled.div<{ $isTest?: boolean }>` // 기존 isTest를 $isTest로 변경
   background: white;
   border-radius: 12px;
   padding: 20px;
   box-shadow: ${theme.shadows.medium};
-  border: ${props => props.isTest ? `2px solid ${theme.colors.primary}` : 'none'};
+  border: ${({ $isTest }) => ($isTest ? `2px solid ${theme.colors.primary}` : "none")};
 `;
 
 const CafeInfo = styled.div`
@@ -269,20 +248,22 @@ const ButtonGroup = styled.div`
   gap: 8px;
 `;
 
-const ActionButton = styled.button<{ secondary?: boolean }>`
+const ActionButton = styled.button<{ $secondary?: boolean }>` // $secondary로 변경
   flex: 1;
   padding: 8px;
-  background: ${props => props.secondary ? 'white' : theme.colors.primary};
-  color: ${props => props.secondary ? theme.colors.primary : 'white'};
-  border: ${props => props.secondary ? `1px solid ${theme.colors.primary}` : 'none'};
+  background: ${({ $secondary }) => ($secondary ? "white" : theme.colors.primary)};
+  color: ${({ $secondary }) => ($secondary ? theme.colors.primary : "white")};
+  border: ${({ $secondary }) => ($secondary ? `1px solid ${theme.colors.primary}` : "none")};
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${props => props.secondary ? theme.colors.background : theme.colors.hover};
+    background: ${({ $secondary }) =>
+      $secondary ? theme.colors.background : theme.colors.hover};
   }
 `;
+
 
 export default CafeListPage;

@@ -15,6 +15,7 @@ export const theme = {
     footerBackground: '#6B4423', // 진한 브라운 (푸터 배경색)
     overlayGradientStart: 'rgba(107, 68, 35, 0.8)', // primary color with opacity
     overlayGradientEnd: 'rgba(150, 114, 89, 0.8)',   // secondary color with opacity
+    border: '#e0e0e0',
   },
   shadows: {
     small: '0 2px 4px rgba(43, 24, 16, 0.1)',

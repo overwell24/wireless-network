@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
 import heroBackground from '../assets/hero-background.jpg'; // 고해상도 배경 이미지 사용 권장
+import coffeeIcon from '../assets/coffee-icon.png';
 
 // React Icons import
 import { 
@@ -79,30 +80,31 @@ const MainPage: React.FC = () => {
         <TestimonialsSection>
           <SectionTitle>사용자 후기</SectionTitle>
           <TestimonialsWrapper>
-            <TestimonialCard>
-              <UserPhoto src="/assets/user1.jpg" alt="홍길동" />
-              <UserName>홍길동</UserName>
-              <UserReview>
-                "카페 자리있어 덕분에 항상 편리하게 카페를 찾을 수 있어요! 정말 추천합니다."
-              </UserReview>
-            </TestimonialCard>
+    <TestimonialCard>
+      <UserPhoto src={coffeeIcon} alt="홍길동" />
+      <UserName>홍길동</UserName>
+      <UserReview>
+        "카페 자리있어 덕분에 항상 편리하게 카페를 찾을 수 있어요! 정말 추천합니다."
+      </UserReview>
+    </TestimonialCard>
 
-            <TestimonialCard>
-              <UserPhoto src="/assets/user2.jpg" alt="김영희" />
-              <UserName>김영희</UserName>
-              <UserReview>
-                "실시간 좌석 현황 덕분에 카페에서 기다리는 시간이 없어졌어요. 너무 좋아요!"
-              </UserReview>
-            </TestimonialCard>
+    <TestimonialCard>
+      <UserPhoto src={coffeeIcon} alt="김영희" />
+      <UserName>김영희</UserName>
+      <UserReview>
+        "실시간 좌석 현황 덕분에 카페에서 기다리는 시간이 없어졌어요. 너무 좋아요!"
+      </UserReview>
+    </TestimonialCard>
 
-            <TestimonialCard>
-              <UserPhoto src="/assets/user3.jpg" alt="이철수" />
-              <UserName>이철수</UserName>
-              <UserReview>
-                "스마트 검색 기능이 정말 유용해요. 근처에 좋은 카페를 쉽게 찾을 수 있어요."
-              </UserReview>
-            </TestimonialCard>
-          </TestimonialsWrapper>
+    <TestimonialCard>
+      <UserPhoto src={coffeeIcon} alt="이철수" />
+      <UserName>이철수</UserName>
+      <UserReview>
+        "스마트 검색 기능이 정말 유용해요. 근처에 좋은 카페를 쉽게 찾을 수 있어요."
+      </UserReview>
+    </TestimonialCard>
+  </TestimonialsWrapper>
+);
         </TestimonialsSection>
       </ContentWrapper>
     </Container>

@@ -17,10 +17,10 @@ const Navbar = () => {
         <LogoText>카페 자리있어?</LogoText>
       </NavLogo>
       <NavItems>
-        <NavItem onClick={() => navigate('/map')} active={location.pathname === '/map'}>
+        <NavItem onClick={() => navigate('/map')} $active={location.pathname === '/map'}>
           지도로 보기
         </NavItem>
-        <NavItem onClick={() => navigate('/list')} active={location.pathname === '/list'}>
+        <NavItem onClick={() => navigate('/list')} $active={location.pathname === '/list'}>
           목록으로 보기
         </NavItem>
       </NavItems>
@@ -65,13 +65,13 @@ const NavItems = styled.div`
   gap: 20px;
 `;
 
-const NavItem = styled.div<{ active?: boolean }>`
+const NavItem = styled.div<{ $active?: boolean }>`
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 8px;
-  color: ${props => props.active ? theme.colors.primary : theme.colors.text.secondary};
-  font-weight: ${props => props.active ? '600' : '400'};
-  background: ${props => props.active ? theme.colors.tertiary + '30' : 'transparent'};
+  color: ${props => props.$active ? theme.colors.primary : theme.colors.text.secondary};
+  font-weight: ${props => props.$active ? '600' : '400'};
+  background: ${props => props.$active ? theme.colors.tertiary + '30' : 'transparent'};
   transition: all 0.2s ease;
   
   &:hover {
