@@ -4,10 +4,11 @@ from routers.api import api_bp
 import os, sys
 import query_list 
 import logging
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
-    
+    CORS(app)
     # loggin 설정
     logging.basicConfig()
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
