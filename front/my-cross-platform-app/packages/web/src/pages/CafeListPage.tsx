@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
-import { cafeApi } from '../services/api'; // API 호출 추가
 
 interface KakaoPlace {
   id: string;
@@ -14,80 +13,163 @@ interface KakaoPlace {
   y: string;
   place_url: string;
   is_test?: boolean;
+  table_status?: TableStatus;
 }
 
-// 테스트용 위치 데이터
-const TEST_LOCATIONS = [
-  {
-    id: 'test-1',
-    place_name: "4호관 405호",
-    category_name: "카페",
-    phone: "",
-    address_name: "인천광역시 미추홀구 인하로 100 인하공업전문대학 4호관 1층",
-    road_address_name: "인천광역시 미추홀구 인하로 100 인하공업전문대학 4호관 1층",
-    x: "126.658518",
-    y: "37.448201",
-    place_url: "#",
-    is_test: true,
-  }
-];
+interface TableStatus {
+  [key: string]: number; // 0: 비어있음, 1: 사용중
+}
+
+// 좌석 레이아웃 컴포넌트
+const SeatLayout = ({ tableStatus }: { tableStatus: TableStatus }) => {
+  return (
+    <SeatContainer>
+      <SeatTitle>좌석 배치도</SeatTitle>
+      <SeatGrid>
+        {Object.entries(tableStatus).map(([seatId, isOccupied]) => (
+          <Seat key={seatId} $isOccupied={isOccupied === 1}>
+            <SeatLabel>{seatId}</SeatLabel>
+            <SeatStatus>{isOccupied === 1 ? '사용중' : '빈좌석'}</SeatStatus>
+          </Seat>
+        ))}
+      </SeatGrid>
+    </SeatContainer>
+  );
+};
+
+// 상세 정보 모달 컴포넌트
+const CafeDetailModal = ({ cafe, onClose }: { cafe: KakaoPlace; onClose: () => void }) => {
+  return (
+    <ModalOverlay>
+      <ModalContent>
+        <CloseButton onClick={onClose}>×</CloseButton>
+        <CafeName>{cafe.place_name}</CafeName>
+        <AddressText>{cafe.road_address_name || cafe.address_name}</AddressText>
+        {cafe.table_status && <SeatLayout tableStatus={cafe.table_status} />}
+      </ModalContent>
+    </ModalOverlay>
+  );
+};
 
 const CafeListPage = () => {
   const [cafes, setCafes] = useState<KakaoPlace[]>([]);
+  const [kakaoPlaces, setKakaoPlaces] = useState<KakaoPlace[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [center] = useState({ lat: 37.448258, lng: 126.658601 });
+  const [selectedCafe, setSelectedCafe] = useState<KakaoPlace | null>(null);
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          searchNearbyCafes(37.448201, 126.658518); // 인하공전 4호관 위치로 고정
+  // 좌석 상태를 랜덤으로 생성하는 함수
+  const generateDummySeats = (cafeId: string): TableStatus => {
+    const numberOfTables = Math.floor(Math.random() * 6) + 5;
+    const tableStatus: TableStatus = {};
+
+    for (let i = 1; i <= numberOfTables; i++) {
+      tableStatus[`table_${i}`] = Math.random() < 0.6 ? 0 : 1;
+    }
+
+    return tableStatus;
+  };
+
+  // 카카오 Places 서비스 초기화
+  const searchNearbyCafes = (latitude: number, longitude: number) => {
+    if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+      const places = new window.kakao.maps.services.Places();
+      
+      const searchOptions: kakao.maps.services.PlacesSearchOptions = {
+        location: new window.kakao.maps.LatLng(latitude, longitude),
+        radius: 1000,
+        category_group_code: 'CE7'
+      };
+
+      places.categorySearch('CE7', 
+        (result: any, status: kakao.maps.services.Status) => {
+          if (status === kakao.maps.services.Status.OK) {
+            const kakaoResults: KakaoPlace[] = result.map((place: any) => ({
+              id: place.id,
+              place_name: place.place_name,
+              category_name: place.category_name,
+              phone: place.phone,
+              address_name: place.address_name,
+              road_address_name: place.road_address_name,
+              x: place.x,
+              y: place.y,
+              place_url: place.place_url,
+              table_status: generateDummySeats(place.id)
+            }));
+            setKakaoPlaces(kakaoResults);
+          }
         },
-        (error) => {
-          console.error('위치 정보 가져오기 실패:', error);
-          searchNearbyCafes(37.448201, 126.658518); // 인하공전 4호관 위치로 고정
-        }
+        searchOptions
       );
     }
-  }, []);
+  };
 
-  const searchNearbyCafes = (lat: number, lng: number) => {
-    const ps = new window.kakao.maps.services.Places();
-
-    ps.categorySearch(
-      'CE7',
-      (data, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          // 실제 카페에 is_test: false 추가
-          const realCafes = data.map(cafe => ({
-            ...cafe,
-            is_test: false
-          }));
-          
-          // 실제 카페와 테스트 위치 합치기
-          setCafes([...realCafes, ...TEST_LOCATIONS]);
+  const fetchCafes = () => {
+    fetch('http://15.165.161.251/api/cafes')
+      .then((response) => response.json())
+      .then((data) => {
+        const realCafeData = data.find((item: any) => item.cafe_id === 1);
+        
+        if (realCafeData) {
+          const updatedCafe: KakaoPlace = {
+            id: realCafeData.cafe_id.toString(),
+            place_name: realCafeData.cafe_name,
+            category_name: '카페',
+            phone: realCafeData.phone || '',
+            address_name: realCafeData.cafe_address,
+            road_address_name: realCafeData.cafe_address,
+            x: realCafeData.lng.toString(),
+            y: realCafeData.lat.toString(),
+            place_url: realCafeData.place_url || '#',
+            is_test: true,
+            table_status: realCafeData.table_status,
+          };
+    
+          const dummyCafes = data
+            .filter((item: any) => item.cafe_id !== 1)
+            .map((item: any) => ({
+              id: item.cafe_id.toString(),
+              place_name: item.cafe_name,
+              category_name: '카페',
+              phone: item.phone || '',
+              address_name: item.cafe_address,
+              road_address_name: item.cafe_address,
+              x: item.lng.toString(),
+              y: item.lat.toString(),
+              place_url: item.place_url || '#',
+              is_test: false,
+              table_status: generateDummySeats(item.cafe_id.toString()),
+            }));
+    
+          const allCafes = [updatedCafe, ...dummyCafes];
+          setCafes(allCafes);
           setLoading(false);
         } else {
-          setError('주변 카페를 찾을 수 없습니다.');
+          setError("카페 데이터 로드 실패: cafe_id 1 데이터 없음");
           setLoading(false);
         }
-      },
-      {
-        location: new window.kakao.maps.LatLng(lat, lng),
-        radius: 1000,
-        sort: window.kakao.maps.services.SortBy.DISTANCE
-      }
-    );
+      })
+      .catch((error) => {
+        console.error("데이터 로드 오류:", error);
+        setError("API 호출 실패");
+        setLoading(false);
+      });
   };
+
+  useEffect(() => {
+    fetchCafes();
+    searchNearbyCafes(center.lat, center.lng);
+  }, [center.lat, center.lng]);
 
   // 혼잡도 계산
   const getCrowdedness = (cafeId: string) => {
-    // 테스트 위치의 경우
-    if (cafeId.startsWith('test-')) {
-      return Math.floor(Math.random() * 100);
-    }
-    // 실제 데이터는 API 호출
-    return Math.floor(Math.random() * 100); // Mock 데이터 유지
+    const cafe = [...cafes, ...kakaoPlaces].find((cafe) => cafe.id === cafeId);
+    if (!cafe || !cafe.table_status) return 0;
+
+    const totalTables = Object.keys(cafe.table_status).length;
+    const occupiedTables = Object.values(cafe.table_status).filter((status) => status === 1).length;
+    return Math.round((occupiedTables / totalTables) * 100);
   };
 
   const getCrowdednessColor = (crowdedness: number) => {
@@ -106,7 +188,7 @@ const CafeListPage = () => {
       {error && <ErrorMessage>{error}</ErrorMessage>}
 
       <CafeList>
-        {cafes.map(cafe => {
+        {[...cafes, ...kakaoPlaces].map(cafe => {
           const crowdedness = getCrowdedness(cafe.id);
           return (
             <CafeCard key={cafe.id} $isTest={cafe.is_test}>
@@ -121,18 +203,18 @@ const CafeListPage = () => {
               <CrowdednessInfo>
                 <CrowdednessBar>
                   <CrowdednessProgress 
-                    width={crowdedness}
-                    color={getCrowdednessColor(crowdedness)}
+                    width={getCrowdedness(cafe.id)}
+                    color={getCrowdednessColor(getCrowdedness(cafe.id))}
                   />
                 </CrowdednessBar>
                 <CrowdednessText>
-                  혼잡도: {crowdedness}%
+                  혼잡도: {getCrowdedness(cafe.id)}%
                 </CrowdednessText>
               </CrowdednessInfo>
 
               <ButtonGroup>
                 <ActionButton 
-                  onClick={() => window.location.href = `/cafe/${cafe.id}`}
+                  onClick={() => setSelectedCafe(cafe)}
                 >
                   상세정보
                 </ActionButton>
@@ -149,10 +231,16 @@ const CafeListPage = () => {
           );
         })}
       </CafeList>
+
+      {selectedCafe && (
+        <CafeDetailModal 
+          cafe={selectedCafe} 
+          onClose={() => setSelectedCafe(null)}
+        />
+      )}
     </Container>
   );
 };
-
 
 const Container = styled.div`
   max-width: 800px;
@@ -189,7 +277,7 @@ const CafeList = styled.div`
   gap: 16px;
 `;
 
-const CafeCard = styled.div<{ $isTest?: boolean }>` // 기존 isTest를 $isTest로 변경
+const CafeCard = styled.div<{ $isTest?: boolean }>`
   background: white;
   border-radius: 12px;
   padding: 20px;
@@ -248,7 +336,7 @@ const ButtonGroup = styled.div`
   gap: 8px;
 `;
 
-const ActionButton = styled.button<{ $secondary?: boolean }>` // $secondary로 변경
+const ActionButton = styled.button<{ $secondary?: boolean }>`
   flex: 1;
   padding: 8px;
   background: ${({ $secondary }) => ($secondary ? "white" : theme.colors.primary)};
@@ -265,5 +353,84 @@ const ActionButton = styled.button<{ $secondary?: boolean }>` // $secondary로 �
   }
 `;
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+`;
+
+const SeatContainer = styled.div`
+  margin: 20px 0;
+  padding: 15px;
+  background: ${theme.colors.background};
+  border-radius: 8px;
+`;
+
+const SeatTitle = styled.h3`
+  font-size: 1.1rem;
+  color: ${theme.colors.text.primary};
+  margin-bottom: 12px;
+`;
+
+const SeatGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+`;
+
+const Seat = styled.div<{ $isOccupied: boolean }>`
+  padding: 8px;
+  background: ${props => props.$isOccupied ? theme.colors.primary : theme.colors.tertiary};
+  color: white;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+`;
+
+const SeatLabel = styled.div`
+  font-weight: bold;
+  font-size: 0.9rem;
+`;
+
+const SeatStatus = styled.div`
+  font-size: 0.8rem;
+  margin-top: 4px;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: ${theme.colors.text.secondary};
+  padding: 5px;
+  line-height: 1;
+  
+  &:hover {
+    color: ${theme.colors.text.primary};
+  }
+`;
 
 export default CafeListPage;

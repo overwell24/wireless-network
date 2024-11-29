@@ -1,23 +1,20 @@
-// src/pages/MainPage.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
-import heroBackground from '../assets/hero-background.jpg'; // 고해상도 배경 이미지 사용 권장
-import coffeeIcon from '../assets/coffee-icon.png';
-
-// React Icons import
-import { 
-  FaMapMarkedAlt, 
-  FaList, 
-  FaChair, 
-  FaChartBar, 
-  FaSearch 
+import heroBackground from '../assets/hero-background.jpg';
+import {
+  FaMapMarkedAlt,
+  FaList,
+  FaChair,
+  FaChartBar,
+  FaSearch
 } from 'react-icons/fa';
+import { User2 } from 'lucide-react'; // Updated import
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
-//dddd
+
   return (
     <Container>
       <ContentWrapper>
@@ -40,7 +37,6 @@ const MainPage: React.FC = () => {
           </HeroContent>
         </HeroSection>
 
-        {/* 서비스 소개 섹션 */}
         <ServicesSection>
           <SectionTitle>서비스 소개</SectionTitle>
           <ServicesWrapper>
@@ -76,35 +72,49 @@ const MainPage: React.FC = () => {
           </ServicesWrapper>
         </ServicesSection>
 
-        {/* 사용자 후기 섹션 */}
         <TestimonialsSection>
           <SectionTitle>사용자 후기</SectionTitle>
           <TestimonialsWrapper>
-    <TestimonialCard>
-      <UserPhoto src={coffeeIcon} alt="홍길동" />
-      <UserName>홍길동</UserName>
-      <UserReview>
-        "카페 자리있어 덕분에 항상 편리하게 카페를 찾을 수 있어요! 정말 추천합니다."
-      </UserReview>
-    </TestimonialCard>
+            <TestimonialCard>
+              <UserIconWrapper>
+                <User2 size={48} color={theme.colors.primary} />
+              </UserIconWrapper>
+              <UserName>이태규</UserName>
+              <UserReview>
+                "카페 자리있어 덕분에 항상 편리하게 카페를 찾을 수 있어요! 실시간 좌석 현황이 정말 유용하고, 사용이 간편해서 자주 이용하고 있습니다."
+              </UserReview>
+            </TestimonialCard>
 
-    <TestimonialCard>
-      <UserPhoto src={coffeeIcon} alt="김영희" />
-      <UserName>김영희</UserName>
-      <UserReview>
-        "실시간 좌석 현황 덕분에 카페에서 기다리는 시간이 없어졌어요. 너무 좋아요!"
-      </UserReview>
-    </TestimonialCard>
+            <TestimonialCard>
+              <UserIconWrapper>
+                <User2 size={48} color={theme.colors.primary} />
+              </UserIconWrapper>
+              <UserName>나예원</UserName>
+              <UserReview>
+                "실시간 좌석 현황 덕분에 카페에서 기다리는 시간이 없어졌어요. 혼잡도 체크 기능도 덕분에 평소보다 더 여유롭게 시간을 보낼 수 있었습니다."
+              </UserReview>
+            </TestimonialCard>
 
-    <TestimonialCard>
-      <UserPhoto src={coffeeIcon} alt="이철수" />
-      <UserName>이철수</UserName>
-      <UserReview>
-        "스마트 검색 기능이 정말 유용해요. 근처에 좋은 카페를 쉽게 찾을 수 있어요."
-      </UserReview>
-    </TestimonialCard>
-  </TestimonialsWrapper>
-);
+            <TestimonialCard>
+              <UserIconWrapper>
+                <User2 size={48} color={theme.colors.primary} />
+              </UserIconWrapper>
+              <UserName>민찬기</UserName>
+              <UserReview>
+                "스마트 검색 기능이 정말 유용해요. 근처에 새로운 카페를 발견하고 바로 예약까지 할 수 있어서 좋아요."
+              </UserReview>
+            </TestimonialCard>
+
+            <TestimonialCard>
+              <UserIconWrapper>
+                <User2 size={48} color={theme.colors.primary} />
+              </UserIconWrapper>
+              <UserName>박상천</UserName>
+              <UserReview>
+                "카페 자리있어를 사용한 후로, 카페 선택이 훨씬 쉬워졌어요. 특히, 실시간 업데이트 덕분에 항상 최신 정보를 얻을 수 있어 만족합니다."
+              </UserReview>
+            </TestimonialCard>
+          </TestimonialsWrapper>
         </TestimonialsSection>
       </ContentWrapper>
     </Container>
@@ -130,29 +140,27 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 40px; /* 패딩 증가 */
+  padding: 40px;
   font-family: ${theme.fonts.primary};
 
   @media (max-width: ${theme.breakpoints.mobile}) {
-    padding: 20px; /* 모바일에서는 패딩 줄이기 */
+    padding: 20px;
   }
 `;
 
-// 콘텐츠 래퍼
 const ContentWrapper = styled.div`
-  max-width: 1600px; /* 최대 너비 증가 */
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
 
   @media (max-width: ${theme.breakpoints.mobile}) {
-    max-width: 100%; /* 모바일에서는 최대 너비 100% */
+    max-width: 100%;
   }
 `;
 
-// 히어로 섹션
 const HeroSection = styled.section`
   position: relative;
-  height: 90vh; /* 높이 증가 */
+  height: 90vh;
   background: url(${heroBackground}) center center/cover no-repeat;
   border-radius: 20px;
   overflow: hidden;
@@ -162,28 +170,25 @@ const HeroSection = styled.section`
   justify-content: center;
 
   @media (max-width: ${theme.breakpoints.mobile}) {
-    height: 60vh; /* 모바일에서는 높이 약간 줄이기 */
+    height: 60vh;
   }
 `;
 
-// 오버레이
 const Overlay = styled.div`
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  /* 오버레이 그라데이션 색상 사용 */
   background: linear-gradient(
     135deg,
     ${theme.colors.overlayGradientStart},
     ${theme.colors.overlayGradientEnd}
   );
-  opacity: 0.4; /* 불투명도 낮추어 배경 이미지 선명도 증가 */
+  opacity: 0.4;
   z-index: 1;
 `;
 
-// 히어로 콘텐츠
 const HeroContent = styled.div`
   position: relative;
   z-index: 2;
@@ -193,9 +198,8 @@ const HeroContent = styled.div`
   padding: 20px;
 `;
 
-// 메인 타이틀
 const MainTitle = styled.h1`
-  font-size: 3.5rem; /* 글씨 크기 약간 증가 */
+  font-size: 3.5rem;
   color: ${theme.colors.text.light};
   margin-bottom: 20px;
   font-weight: bold;
@@ -206,9 +210,8 @@ const MainTitle = styled.h1`
   }
 `;
 
-// 서브타이틀
 const Subtitle = styled.p`
-  font-size: 1.5rem; /* 글씨 크기 약간 증가 */
+  font-size: 1.5rem;
   color: ${theme.colors.text.light};
   margin-bottom: 40px;
   font-weight: 300;
@@ -218,7 +221,6 @@ const Subtitle = styled.p`
   }
 `;
 
-// 버튼 그룹
 const ButtonGroup = styled.div`
   display: flex;
   gap: 20px;
@@ -230,9 +232,8 @@ const ButtonGroup = styled.div`
   }
 `;
 
-// 기본 버튼 스타일
 const BaseButton = styled.button`
-  padding: 15px 35px; /* 패딩 약간 증가 */
+  padding: 15px 35px;
   font-size: 1.2rem;
   border: none;
   border-radius: 12px;
@@ -260,7 +261,6 @@ const BaseButton = styled.button`
   }
 `;
 
-// 메인 버튼
 const MainButton = styled(BaseButton)`
   background: ${theme.colors.primary};
   color: ${theme.colors.text.light};
@@ -270,7 +270,6 @@ const MainButton = styled(BaseButton)`
   }
 `;
 
-// 서브 버튼
 const SecondaryButton = styled(BaseButton)`
   background: ${theme.colors.tertiary};
   color: ${theme.colors.primary};
@@ -281,13 +280,11 @@ const SecondaryButton = styled(BaseButton)`
   }
 `;
 
-// 서비스 소개 섹션
 const ServicesSection = styled.section`
   margin-top: 80px;
   animation: ${fadeInUp} 1s ease-out;
 `;
 
-// 서비스 소개 섹션 제목
 const SectionTitle = styled.h2`
   font-size: 2rem;
   color: ${theme.colors.primary};
@@ -297,7 +294,6 @@ const SectionTitle = styled.h2`
   animation: ${fadeInUp} 1s ease-out;
 `;
 
-// 서비스 소개 래퍼
 const ServicesWrapper = styled.div`
   display: flex;
   justify-content: space-around;
@@ -306,7 +302,6 @@ const ServicesWrapper = styled.div`
   margin-top: 40px;
 `;
 
-// 개별 서비스 카드
 const ServiceCard = styled.div`
   background: white;
   padding: 30px 20px;
@@ -323,14 +318,12 @@ const ServiceCard = styled.div`
   }
 `;
 
-// 서비스 아이콘
 const ServiceIcon = styled.div`
   font-size: 3rem;
   margin-bottom: 15px;
   color: ${theme.colors.primary};
 `;
 
-// 서비스 제목
 const ServiceTitle = styled.h3`
   font-size: 1.4rem;
   color: ${theme.colors.primary};
@@ -338,30 +331,17 @@ const ServiceTitle = styled.h3`
   font-weight: 600;
 `;
 
-// 서비스 설명
 const ServiceDescription = styled.p`
   color: ${theme.colors.text.secondary};
   line-height: 1.6;
   font-size: 1rem;
 `;
 
-// 사용자 후기 섹션
 const TestimonialsSection = styled.section`
   margin-top: 60px;
   animation: ${fadeInUp} 1s ease-out;
 `;
 
-// 사용자 후기 섹션 제목
-const TestimonialsSectionTitle = styled.h2`
-  font-size: 2rem;
-  color: ${theme.colors.primary};
-  text-align: center;
-  margin-bottom: 40px;
-  font-weight: bold;
-  animation: ${fadeInUp} 1s ease-out;
-`;
-
-// 사용자 후기 래퍼
 const TestimonialsWrapper = styled.div`
   display: flex;
   justify-content: space-around;
@@ -370,7 +350,6 @@ const TestimonialsWrapper = styled.div`
   margin-top: 40px;
 `;
 
-// 개별 후기 카드
 const TestimonialCard = styled.div`
   background: white;
   padding: 30px 20px;
@@ -387,16 +366,13 @@ const TestimonialCard = styled.div`
   }
 `;
 
-// 사용자 사진
-const UserPhoto = styled.img`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
+const UserIconWrapper = styled.div`
   margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
-// 사용자 이름
 const UserName = styled.h3`
   font-size: 1.3rem;
   color: ${theme.colors.primary};
@@ -404,7 +380,6 @@ const UserName = styled.h3`
   font-weight: 600;
 `;
 
-// 사용자 후기 내용
 const UserReview = styled.p`
   color: ${theme.colors.text.secondary};
   line-height: 1.6;
