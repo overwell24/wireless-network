@@ -84,7 +84,7 @@ const MapPage = () => {
   // 인하공업전문대학교의 고정된 좌표
   const [center] = useState({ lat: 37.448258, lng: 126.658601 });
 
-  // 카카오 Places 서비스 초기화
+  // 카카오 Places 서비스 초기화 (한 번만 호출)
   const searchNearbyCafes = (latitude: number, longitude: number) => {
     if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
       const places = new window.kakao.maps.services.Places();
@@ -118,6 +118,7 @@ const MapPage = () => {
     }
   };
 
+  // 실제 API에서 카페 데이터를 가져오는 함수
   const fetchCafes = () => {
     fetch('http://15.165.161.251/api/cafes')
       .then((response) => response.json())
@@ -171,9 +172,22 @@ const MapPage = () => {
   };
 
   useEffect(() => {
-    fetchCafes();
+    // 초기 로드 시 로컬 카페 데이터 한 번 가져오기
     searchNearbyCafes(center.lat, center.lng);
   }, [center.lat, center.lng]);
+
+  useEffect(() => {
+    // 초기 데이터 가져오기
+    fetchCafes();
+    
+    // 1초마다 실제 API 데이터 갱신
+    const interval = setInterval(() => {
+      fetchCafes();
+    }, 1000); // 1000ms = 1초
+
+    // 컴포넌트 언마운트 시 인터벌 클리어
+    return () => clearInterval(interval);
+  }, []);
 
   // 혼잡도 계산
   const getCrowdedness = (cafeId: string) => {

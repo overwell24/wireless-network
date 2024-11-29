@@ -31,17 +31,17 @@ const CafeListPage = () => {
 
   // 좌석 상태를 랜덤으로 생성하는 함수
   const generateDummySeats = (cafeId: string): TableStatus => {
-    const numberOfTables = Math.floor(Math.random() * 6) + 5;
+    const numberOfTables = Math.floor(Math.random() * 6) + 5; // 5~10개의 테이블
     const tableStatus: TableStatus = {};
 
     for (let i = 1; i <= numberOfTables; i++) {
-      tableStatus[`table_${i}`] = Math.random() < 0.6 ? 0 : 1;
+      tableStatus[`table_${i}`] = Math.random() < 0.6 ? 0 : 1; // 60% 확률로 빈자리
     }
 
     return tableStatus;
   };
 
-  // 카카오 Places 서비스 초기화
+  // 카카오 Places 서비스 초기화 (한 번만 호출)
   const searchNearbyCafes = (latitude: number, longitude: number) => {
     if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
       const places = new window.kakao.maps.services.Places();
@@ -75,6 +75,7 @@ const CafeListPage = () => {
     }
   };
 
+  // 실제 API에서 카페 데이터를 가져오는 함수
   const fetchCafes = () => {
     fetch('http://15.165.161.251/api/cafes')
       .then((response) => response.json())
@@ -128,17 +129,22 @@ const CafeListPage = () => {
   };
 
   useEffect(() => {
-    fetchCafes();
+    // 초기 로드 시 로컬 카페 데이터 한 번 가져오기
     searchNearbyCafes(center.lat, center.lng);
+  }, [center.lat, center.lng]);
+
+  useEffect(() => {
+    // 초기 데이터 가져오기
+    fetchCafes();
     
-    // 1분마다 데이터 새로고침
+    // 1초마다 실제 API 데이터 갱신
     const interval = setInterval(() => {
       fetchCafes();
-      searchNearbyCafes(center.lat, center.lng);
-    }, 60000);
+    }, 1000); // 1000ms = 1초
 
+    // 컴포넌트 언마운트 시 인터벌 클리어
     return () => clearInterval(interval);
-  }, [center.lat, center.lng]);
+  }, []);
 
   // 혼잡도 계산
   const getCrowdedness = (cafeId: string) => {

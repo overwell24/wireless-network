@@ -1,6 +1,10 @@
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
-plugins { id("com.facebook.react.settings") }
-extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'mobile'
+
 include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
+
+def nodeModules = new File(rootDir, '../node_modules/@react-native-community/cli-platform-android/native_modules.gradle')
+if (nodeModules.exists()) {
+    apply from: nodeModules
+}
+
+apply from: "../../node_modules/react-native/react.gradle"
