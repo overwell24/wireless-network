@@ -1,23 +1,25 @@
 #include <SoftwareSerial.h>
 
 // SoftwareSerial 핀 설정 (RX, TX)
-SoftwareSerial esp8266(2, 3); // RX, TX
+SoftwareSerial esp8266(2, 3);
 
 // Wi-Fi 및 서버 설정
 String ssid = "ssid";          // Wi-Fi 이름
 String password = "password";     // Wi-Fi 비밀번호
 String server = "serverIP";   // 서버 IP 
 
-int pressSensor = A0; // 압력 센서 값 저장 변수
+//압력센서 A0핀
+int pressSensor = A0;
+//압력센서 설치 테이블 
 int table_1_value = 0;
 
-// sendCommand 함수 프로토타입 선언
+// sendCommand 함수 프로토타입 선언(AT Command 처리 함수)
 bool sendCommand(String command, const int timeout);
 
 void setup() {
-  // 기본 시리얼 통신 설정
+  // 기본 통신 설정
   Serial.begin(9600);      
-  esp8266.begin(9600);    
+  esp8266.begin(9600); //기본적으로 115200 통신속도를 사용    
 
   // Wi-Fi 연결
   if (!connectWiFi()) {
@@ -33,18 +35,18 @@ bool connectWiFi() {
   Serial.println("Wi-Fi 연결 시도 중...");
   
   // AT 명령어로 모듈 응답 확인
-  if (!sendCommand("AT", 2000)) return false; // AT 명령어로 모듈 응답 확인
+  if (!sendCommand("AT", 2000)) return false; 
   
-  // Station 모드 설정
+  // Station 모드 설정(인터넷 접속 및 서버 통신 모드)
   if (!sendCommand("AT+CWMODE=1", 1000)) return false;
   
   // Wi-Fi 연결
   String connectCmd = "AT+CWJAP=\"" + ssid + "\",\"" + password + "\"";
   if (sendCommand(connectCmd, 10000)) {
-    return true;  // 연결 성공 시 true 반환
+    return true;  
   }
   
-  return false;  // 연결 실패 시 false 반환
+  return false;
 }
 
 // AT 명령어 전송 함수
@@ -61,10 +63,10 @@ bool sendCommand(String command, const int timeout) {
       
       // 'OK' 또는 'CONNECT' 또는 'no change'에 대해 성공으로 처리
       if (response.indexOf("OK") != -1 || response.indexOf("CONNECT") != -1 || response.indexOf("no change") != -1) {
-        Serial.println("응답: OK");
+        Serial.println("OK");
         return true;
       } 
-      // 'busy p...' 응답 처리
+      // 'busy p...' 응답 처리 ( 와이파이 연결 중 나오는 응답 처리)
       else if (response.indexOf("busy p...") != -1) {
         Serial.println("응답: busy p... Wi-Fi 연결 중...");
         delay(2000);  // 연결이 완료될 때까지 잠시 대기
@@ -85,16 +87,19 @@ void loop() {
   int pressValue = analogRead(pressSensor);
 
   // 압력 센서 값에 따른 table_1 값 설정
-  table_1_value = (pressValue > 1000) ? 1 : 0; // 1000 초과하면 1, 아니면 0
+  table_1_value = (pressValue > 1000) ? 1 : 0; // 1000 초과하면 1(사용 중), 아니면 0(비어 있음) / 
 
-  // 5초마다 HTTP POST 요청 보내기
+  // HTTP POST 요청 함수 
   sendPostRequest();
-  delay(1000); // 1초마다 전송
+
+  delay(1000); // 딜레이 1초
 }
 
 // HTTP POST 요청 함수
 void sendPostRequest() {
+    //설계된 JSON 형식으로 값 전달
     String jsonPayload = "{\"cafe_id\": 1, \"table_1\": " + String(table_1_value) + ", \"table_2\": 0, \"table_3\": 0, \"table_4\": 1, \"table_5\": 0, \"table_6\": 0, \"table_7\": 0, \"table_8\": 0}";
+    //HTTP요청
     String httpRequest = 
     "POST /api/cafe/table-occupied-status HTTP/1.1\r\n"
     "Host: " + server + "\r\n"
@@ -108,12 +113,12 @@ void sendPostRequest() {
   Serial.println(httpRequest);
   Serial.println("=========================");
 
-  // TCP 연결 시작
+  // 서버연결 연결 시작
   if (sendCommand("AT+CIPSTART=\"TCP\",\"" + server + "\",80", 5000)) {
     Serial.println("서버 연결 성공!");
 
     // 데이터 전송 요청
-    sendCommand("AT+CIPSEND=" + String(httpRequest.length()), 1000);
+    sendCommand("AT+CIPSEND=" + String(httpRequest.length()), 1000); // 전송준비 / 이 명령어 없으면 서버에 전송이 안된다...
     esp8266.print(httpRequest); // 실제 HTTP 요청 전송
 
     // 응답 확인
