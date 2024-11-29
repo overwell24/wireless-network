@@ -130,6 +130,14 @@ const CafeListPage = () => {
   useEffect(() => {
     fetchCafes();
     searchNearbyCafes(center.lat, center.lng);
+    
+    // 1분마다 데이터 새로고침
+    const interval = setInterval(() => {
+      fetchCafes();
+      searchNearbyCafes(center.lat, center.lng);
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, [center.lat, center.lng]);
 
   // 혼잡도 계산

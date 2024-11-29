@@ -28,20 +28,79 @@ const CafeDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
+  // 더미 좌석 데이터 생성 함수
+  const generateDummySeats = (cafeId: string): TableStatus => {
+    const numberOfTables = Math.floor(Math.random() * 6) + 5;
+    const tableStatus: TableStatus = {};
+    for (let i = 1; i <= numberOfTables; i++) {
+      tableStatus[`table_${i}`] = Math.random() < 0.6 ? 0 : 1;
+    }
+    return tableStatus;
+  };
+
   // API에서 카페 데이터 가져오기
   const fetchCafeData = async () => {
     try {
+      // 1. 먼저 자체 API에서 데이터 확인
       const response = await fetch(`http://15.165.161.251/api/cafes`);
       const data = await response.json();
-      const targetCafe = data.find((cafe: CafeData) => cafe.cafe_id.toString() === id);
+      const targetCafe = data.find((cafe: any) => cafe.cafe_id.toString() === id);
       
       if (targetCafe) {
-        setCafeData(targetCafe);
-        setLastUpdated(new Date());
+        const cafeInfo: CafeData = {
+          cafe_id: targetCafe.cafe_id,
+          cafe_name: targetCafe.cafe_name,
+          cafe_address: targetCafe.cafe_address,
+          phone: targetCafe.phone || '',
+          table_status: targetCafe.table_status,
+          lat: targetCafe.lat,
+          lng: targetCafe.lng,
+          place_url: targetCafe.place_url || '#',
+          is_test: targetCafe.cafe_id === 1
+        };
+        setCafeData(cafeInfo);
+        setLoading(false);
       } else {
-        setError('카페를 찾을 수 없습니다');
+        // 2. 자체 API에 없다면 카카오 키워드 검색 API 사용
+        if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+          const places = new window.kakao.maps.services.Places();
+          
+          const searchCallback = (result: any, status: kakao.maps.services.Status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+              // ID로 찾기
+              const kakaoPlace = result.find((place: any) => place.id === id);
+              if (kakaoPlace) {
+                const transformedData: CafeData = {
+                  cafe_id: parseInt(kakaoPlace.id),
+                  cafe_name: kakaoPlace.place_name,
+                  cafe_address: kakaoPlace.road_address_name || kakaoPlace.address_name,
+                  phone: kakaoPlace.phone,
+                  table_status: generateDummySeats(kakaoPlace.id),
+                  lat: kakaoPlace.y,
+                  lng: kakaoPlace.x,
+                  place_url: kakaoPlace.place_url,
+                  is_test: false
+                };
+                setCafeData(transformedData);
+              } else {
+                setError('카페를 찾을 수 없습니다');
+              }
+            } else {
+              setError('카페 정보를 불러올 수 없습니다');
+            }
+            setLoading(false);
+          };
+  
+          const searchOptions: kakao.maps.services.PlacesSearchOptions = {
+            location: new window.kakao.maps.LatLng(37.448258, 126.658601),
+            radius: 1000,
+            category_group_code: 'CE7' as kakao.maps.services.CategoryGroupCode
+          };
+          
+          places.categorySearch('CE7', searchCallback, searchOptions);
+        }
       }
-      setLoading(false);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Failed to fetch cafe details:', error);
       setError('데이터를 불러오는데 실패했습니다');
@@ -51,6 +110,7 @@ const CafeDetailPage = () => {
 
   useEffect(() => {
     fetchCafeData();
+    
     // 1분마다 데이터 자동 업데이트
     const interval = setInterval(fetchCafeData, 60000);
     return () => clearInterval(interval);

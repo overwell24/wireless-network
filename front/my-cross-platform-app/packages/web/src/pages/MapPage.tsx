@@ -48,7 +48,7 @@ const generateDummySeats = (cafeId: string): TableStatus => {
 };
 
 // 좌석 레이아웃 컴포넌트
-const SeatLayout = ({ tableStatus }: { tableStatus: TableStatus }) => {
+const SeatLayout = ({ tableStatus, onViewMore }: { tableStatus: TableStatus; onViewMore: () => void }) => {
   return (
     <SeatContainer>
       <SeatTitle>좌석 미리보기</SeatTitle>
@@ -60,7 +60,7 @@ const SeatLayout = ({ tableStatus }: { tableStatus: TableStatus }) => {
           </Seat>
         ))}
       </SeatGrid>
-      <ViewMoreText>전체 좌석 보기 ↗</ViewMoreText>
+      <ViewMoreText onClick={onViewMore}>전체 좌석 보기 ↗</ViewMoreText>
     </SeatContainer>
   );
 };
@@ -255,7 +255,10 @@ const MapPage = () => {
             <StatusText>현재 혼잡도: {getCrowdedness(selectedCafe.id)}%</StatusText>
           </StatusInfo>
 
-          <SeatLayout tableStatus={getTableStatus(selectedCafe.id) || {}} />
+          <SeatLayout 
+            tableStatus={getTableStatus(selectedCafe.id) || {}} 
+            onViewMore={() => navigate(`/cafe/${selectedCafe.id}`)}
+          />
 
           <ButtonGroup>
             <DetailButton onClick={() => navigate(`/cafe/${selectedCafe.id}`)}>
