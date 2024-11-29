@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { theme } from '../styles/theme';
 
 interface KakaoPlace {
@@ -20,44 +21,13 @@ interface TableStatus {
   [key: string]: number; // 0: 비어있음, 1: 사용중
 }
 
-// 좌석 레이아웃 컴포넌트
-const SeatLayout = ({ tableStatus }: { tableStatus: TableStatus }) => {
-  return (
-    <SeatContainer>
-      <SeatTitle>좌석 배치도</SeatTitle>
-      <SeatGrid>
-        {Object.entries(tableStatus).map(([seatId, isOccupied]) => (
-          <Seat key={seatId} $isOccupied={isOccupied === 1}>
-            <SeatLabel>{seatId}</SeatLabel>
-            <SeatStatus>{isOccupied === 1 ? '사용중' : '빈좌석'}</SeatStatus>
-          </Seat>
-        ))}
-      </SeatGrid>
-    </SeatContainer>
-  );
-};
-
-// 상세 정보 모달 컴포넌트
-const CafeDetailModal = ({ cafe, onClose }: { cafe: KakaoPlace; onClose: () => void }) => {
-  return (
-    <ModalOverlay>
-      <ModalContent>
-        <CloseButton onClick={onClose}>×</CloseButton>
-        <CafeName>{cafe.place_name}</CafeName>
-        <AddressText>{cafe.road_address_name || cafe.address_name}</AddressText>
-        {cafe.table_status && <SeatLayout tableStatus={cafe.table_status} />}
-      </ModalContent>
-    </ModalOverlay>
-  );
-};
-
 const CafeListPage = () => {
+  const navigate = useNavigate();
   const [cafes, setCafes] = useState<KakaoPlace[]>([]);
   const [kakaoPlaces, setKakaoPlaces] = useState<KakaoPlace[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [center] = useState({ lat: 37.448258, lng: 126.658601 });
-  const [selectedCafe, setSelectedCafe] = useState<KakaoPlace | null>(null);
 
   // 좌석 상태를 랜덤으로 생성하는 함수
   const generateDummySeats = (cafeId: string): TableStatus => {
@@ -214,7 +184,7 @@ const CafeListPage = () => {
 
               <ButtonGroup>
                 <ActionButton 
-                  onClick={() => setSelectedCafe(cafe)}
+                  onClick={() => navigate(`/cafe/${cafe.id}`)}
                 >
                   상세정보
                 </ActionButton>
@@ -231,13 +201,6 @@ const CafeListPage = () => {
           );
         })}
       </CafeList>
-
-      {selectedCafe && (
-        <CafeDetailModal 
-          cafe={selectedCafe} 
-          onClose={() => setSelectedCafe(null)}
-        />
-      )}
     </Container>
   );
 };
@@ -350,86 +313,6 @@ const ActionButton = styled.button<{ $secondary?: boolean }>`
   &:hover {
     background: ${({ $secondary }) =>
       $secondary ? theme.colors.background : theme.colors.hover};
-  }
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const ModalContent = styled.div`
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-`;
-
-const SeatContainer = styled.div`
-  margin: 20px 0;
-  padding: 15px;
-  background: ${theme.colors.background};
-  border-radius: 8px;
-`;
-
-const SeatTitle = styled.h3`
-  font-size: 1.1rem;
-  color: ${theme.colors.text.primary};
-  margin-bottom: 12px;
-`;
-
-const SeatGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-`;
-
-const Seat = styled.div<{ $isOccupied: boolean }>`
-  padding: 8px;
-  background: ${props => props.$isOccupied ? theme.colors.primary : theme.colors.tertiary};
-  color: white;
-  border-radius: 4px;
-  text-align: center;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease;
-`;
-
-const SeatLabel = styled.div`
-  font-weight: bold;
-  font-size: 0.9rem;
-`;
-
-const SeatStatus = styled.div`
-  font-size: 0.8rem;
-  margin-top: 4px;
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: ${theme.colors.text.secondary};
-  padding: 5px;
-  line-height: 1;
-  
-  &:hover {
-    color: ${theme.colors.text.primary};
   }
 `;
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Map as KakaoMap, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
+import { useNavigate } from 'react-router-dom';
 import { theme } from '../styles/theme';
 import coffeeIcon from '../assets/coffee-icon.png';
 import styled from 'styled-components';
@@ -29,8 +30,8 @@ interface TableStatus {
 const COMMON_MARKER_IMAGE = {
   src: coffeeIcon,
   size: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
   },
 };
 
@@ -40,7 +41,7 @@ const generateDummySeats = (cafeId: string): TableStatus => {
   const tableStatus: TableStatus = {};
 
   for (let i = 1; i <= numberOfTables; i++) {
-    tableStatus[`table_${i}`] = Math.random() < 0.6 ? 0 : 1; // 60% 확률로 빈자리, 40% 확률로 사용중
+    tableStatus[`table_${i}`] = Math.random() < 0.6 ? 0 : 1; // 60% 확률로 빈자리
   }
 
   return tableStatus;
@@ -50,15 +51,16 @@ const generateDummySeats = (cafeId: string): TableStatus => {
 const SeatLayout = ({ tableStatus }: { tableStatus: TableStatus }) => {
   return (
     <SeatContainer>
-      <SeatTitle>좌석 배치도</SeatTitle>
+      <SeatTitle>좌석 미리보기</SeatTitle>
       <SeatGrid>
-        {Object.entries(tableStatus).map(([seatId, isOccupied]) => (
+        {Object.entries(tableStatus).slice(0, 4).map(([seatId, isOccupied]) => (
           <Seat key={seatId} $isOccupied={isOccupied === 1}>
             <SeatLabel>{seatId}</SeatLabel>
             <SeatStatus>{isOccupied === 1 ? '사용중' : '빈좌석'}</SeatStatus>
           </Seat>
         ))}
       </SeatGrid>
+      <ViewMoreText>전체 좌석 보기 ↗</ViewMoreText>
     </SeatContainer>
   );
 };
@@ -72,6 +74,7 @@ const getCrowdednessColor = (crowdedness: number) => {
 
 // MapPage 컴포넌트
 const MapPage = () => {
+  const navigate = useNavigate();
   const [cafes, setCafes] = useState<KakaoPlace[]>([]);
   const [kakaoPlaces, setKakaoPlaces] = useState<KakaoPlace[]>([]);
   const [selectedCafe, setSelectedCafe] = useState<KakaoPlace | null>(null);
@@ -169,7 +172,7 @@ const MapPage = () => {
 
   useEffect(() => {
     fetchCafes();
-    searchNearbyCafes(center.lat, center.lng); // 고정된 center로 주변 카페 검색
+    searchNearbyCafes(center.lat, center.lng);
   }, [center.lat, center.lng]);
 
   // 혼잡도 계산
@@ -255,8 +258,11 @@ const MapPage = () => {
           <SeatLayout tableStatus={getTableStatus(selectedCafe.id) || {}} />
 
           <ButtonGroup>
+            <DetailButton onClick={() => navigate(`/cafe/${selectedCafe.id}`)}>
+              상세 정보 보기
+            </DetailButton>
             {!selectedCafe.is_test && (
-              <DetailButton onClick={() => window.open(selectedCafe.place_url, '_blank')}>
+              <DetailButton $secondary onClick={() => window.open(selectedCafe.place_url, '_blank')}>
                 카카오맵에서 보기
               </DetailButton>
             )}
@@ -347,6 +353,18 @@ const SeatStatus = styled.div`
   margin-top: 4px;
 `;
 
+const ViewMoreText = styled.div`
+  text-align: center;
+  color: ${theme.colors.text.secondary};
+  font-size: 0.9rem;
+  margin-top: 12px;
+  cursor: pointer;
+
+  &:hover {
+    color: ${theme.colors.text.primary};
+  }
+`;
+
 const InfoPanel = styled.div`
   position: absolute;
   right: 20px;
@@ -414,19 +432,19 @@ const ButtonGroup = styled.div`
   margin-top: 16px;
 `;
 
-const DetailButton = styled.button`
-  width: 100%;
+const DetailButton = styled.button<{ $secondary?: boolean }>`
+  flex: 1;
   padding: 10px;
-  background: ${theme.colors.primary};
-  color: white;
-  border: none;
+  background: ${props => props.$secondary ? "white" : theme.colors.primary};
+  color: ${props => props.$secondary ? theme.colors.primary : "white"};
+  border: ${props => props.$secondary ? `1px solid ${theme.colors.primary}` : "none"};
   border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
   transition: background 0.2s ease;
 
   &:hover {
-    background: ${theme.colors.hover};
+    background: ${props => props.$secondary ? theme.colors.background : theme.colors.hover};
   }
 `;
 
