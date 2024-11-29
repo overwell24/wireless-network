@@ -4,9 +4,9 @@
 SoftwareSerial esp8266(2, 3);
 
 // Wi-Fi 및 서버 설정
-String ssid = "Minee";          // Wi-Fi 이름
-String password = "test123!!!"; // Wi-Fi 비밀번호
-String server = "15.165.161.251";   // 서버 IP
+String ssid = "SSID";          // Wi-Fi 이름
+String password = "PASSWORD"; // Wi-Fi 비밀번호
+String server = "SERVER IP";   // 서버 IP
 
 // 압력센서 A0핀
 int pressSensor = A0;
