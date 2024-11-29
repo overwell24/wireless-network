@@ -1,72 +1,102 @@
 #include <SoftwareSerial.h>
 
 // SoftwareSerial 핀 설정 (RX, TX)
-SoftwareSerial esp8266(0 , 1);
+SoftwareSerial esp8266(2, 3); // RX, TX
 
-//WIFI 설정
-String ssid = "ssid";          
-String password = "password";  
-//서버URL
-String server = "server";  
+// Wi-Fi 및 서버 설정
+String ssid = "ssid";          // Wi-Fi 이름
+String password = "password";     // Wi-Fi 비밀번호
+String server = "serverIP";   // 서버 IP 
 
-// 압력 센서 핀 설정
-const int PressSensor = A0;
+int pressSensor = A0; // 압력 센서 값 저장 변수
+int table_1_value = 0;
+
+// sendCommand 함수 프로토타입 선언
+bool sendCommand(String command, const int timeout);
 
 void setup() {
-  // 기본 시리얼 모니터 통신
-  Serial.begin(9600);       
-   // ESP8266 통신 
-  esp8266.begin(115200);    
+  // 기본 시리얼 통신 설정
+  Serial.begin(9600);      
+  esp8266.begin(9600);    
 
   // Wi-Fi 연결
-  connectWiFi();             
-        
-}
-
-void loop() {
-  // 1초마다 센서값을 받아서 전송
-  int sensorValue = analogRead(PressSensor);
-
-  // 1000 이상일 경우 1, 그렇지 않으면 0
-  int table_1_Status = (sensorValue > 1000) ? 1 : 0;
-
-  //HTTP 전송
-  sendPostRequest(table_1_Status);
-
-  delay(1000);
-
+  if (!connectWiFi()) {
+    Serial.println("Wi-Fi 연결 실패. 재시도 중...");
+    while (!connectWiFi()); // 성공할 때까지 재시도
+    delay(5000);
+  }
+  Serial.println("Wi-Fi 연결 성공!");
 }
 
 // Wi-Fi 연결 함수
-void connectWiFi() {
+bool connectWiFi() {
   Serial.println("Wi-Fi 연결 시도 중...");
   
-  //모듈 확인
-  sendCommand("AT", 1000); 
-  // Wi-Fi 모드 설정 (Station 모드)
-  sendCommand("AT+CWMODE=1", 1000); 
+  // AT 명령어로 모듈 응답 확인
+  if (!sendCommand("AT", 2000)) return false; // AT 명령어로 모듈 응답 확인
+  
+  // Station 모드 설정
+  if (!sendCommand("AT+CWMODE=1", 1000)) return false;
+  
   // Wi-Fi 연결
-  sendCommand("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"", 5000); 
-  Serial.println("Wi-Fi 연결 완료!");
+  String connectCmd = "AT+CWJAP=\"" + ssid + "\",\"" + password + "\"";
+  if (sendCommand(connectCmd, 10000)) {
+    return true;  // 연결 성공 시 true 반환
+  }
+  
+  return false;  // 연결 실패 시 false 반환
+}
+
+// AT 명령어 전송 함수
+bool sendCommand(String command, const int timeout) {
+  Serial.println("명령어 전송: " + command);
+  
+  esp8266.println(command);
+  long int time = millis();
+  
+  while ((millis() - time) < timeout) {
+    if (esp8266.available()) {
+      String response = esp8266.readString();
+      Serial.println("응답: " + response);
+      
+      // 'OK' 또는 'CONNECT' 또는 'no change'에 대해 성공으로 처리
+      if (response.indexOf("OK") != -1 || response.indexOf("CONNECT") != -1 || response.indexOf("no change") != -1) {
+        Serial.println("응답: OK");
+        return true;
+      } 
+      // 'busy p...' 응답 처리
+      else if (response.indexOf("busy p...") != -1) {
+        Serial.println("응답: busy p... Wi-Fi 연결 중...");
+        delay(2000);  // 연결이 완료될 때까지 잠시 대기
+      } 
+      else if (response.indexOf("ERROR") != -1) {
+        Serial.println("오류 응답: " + response);
+        return false;
+      }
+    }
+  }
+  
+  Serial.println("응답 없음.");
+  return false;
+}
+
+void loop() {
+  // A0 핀에서 압력 센서 값 읽기
+  int pressValue = analogRead(pressSensor);
+
+  // 압력 센서 값에 따른 table_1 값 설정
+  table_1_value = (pressValue > 1000) ? 1 : 0; // 1000 초과하면 1, 아니면 0
+
+  // 5초마다 HTTP POST 요청 보내기
+  sendPostRequest();
+  delay(1000); // 1초마다 전송
 }
 
 // HTTP POST 요청 함수
-void sendPostRequest(int table_1_Status) {
-  String jsonPayload = "{"
-    "\"table_1\": " + String(table_1_Status) + ","  // table_1의 상태값을 동적으로 설정
-    "\"table_2\": 0,"
-    "\"table_3\": 0,"
-    "\"table_4\": 0,"
-    "\"table_5\": 0,"
-    "\"table_6\": 0,"
-    "\"table_7\": 0,"
-    "\"table_8\": 0,"
-    "\"table_9\": 0,"
-    "\"table_10\": 0"
-  "}";
-
-  String httpRequest = 
-    "POST /api/cafe/table-occupied-status HTTP/1.1\r\n"// 설계 API URL
+void sendPostRequest() {
+    String jsonPayload = "{\"cafe_id\": 1, \"table_1\": " + String(table_1_value) + ", \"table_2\": 0, \"table_3\": 0, \"table_4\": 1, \"table_5\": 0, \"table_6\": 0, \"table_7\": 0, \"table_8\": 0}";
+    String httpRequest = 
+    "POST /api/cafe/table-occupied-status HTTP/1.1\r\n"
     "Host: " + server + "\r\n"
     "Content-Type: application/json\r\n"
     "Content-Length: " + String(jsonPayload.length()) + "\r\n"
@@ -97,22 +127,4 @@ void sendPostRequest(int table_1_Status) {
   } else {
     Serial.println("서버 연결 실패.");
   }
-}
-
-// AT 명령어 전송 함수
-bool sendCommand(String command, const int timeout) {
-  
-  esp8266.println(command); 
-  
-  long int time = millis();
-  while ((millis() - time) < timeout) {
-    if (esp8266.available()) {
-      String response = esp8266.readString();
-      Serial.println("응답: " + response);
-      if (response.indexOf("OK") != -1 || response.indexOf("CONNECT") != -1) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
