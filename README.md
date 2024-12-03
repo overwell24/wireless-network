@@ -30,7 +30,7 @@
 </details>
 
 ## 프로젝트 작동화면
-[시연 영상]()
+### [시연 영상]()
 
 ### 웹 
 <img width="100%"  src="https://github.com/user-attachments/assets/acdb6759-4ac7-456e-8d54-8997de67f250">
