@@ -18,6 +18,7 @@
 - [발표 후 수정 사항](https://github.com/overwell24/wireless-network/wiki/%EB%B0%9C%ED%91%9C-%ED%9B%84-%EC%88%98%EC%A0%95-%EC%82%AC%ED%95%AD)
 - [수정 최종 문서](https://github.com/overwell24/wireless-network/wiki/%EC%88%98%EC%A0%95%EB%90%9C-%EC%B5%9C%EC%A2%85-%EB%AC%B8%EC%84%9C)
 ### 프로젝트 개발 과정 기록
+![KakaoTalk_Photo_2024-12-03-18-17-50 012](https://github.com/user-attachments/assets/1d584a8e-0e9c-4a00-8633-723a0b922b23)
 - [역할 분담](https://github.com/overwell24/wireless-network/wiki/%EC%97%AD%ED%95%A0-%EB%B6%84%EB%8B%B4)
 - [설계](https://github.com/overwell24/wireless-network/wiki/%EC%84%A4%EA%B3%84)
 - [front 개발 과정](https://github.com/overwell24/wireless-network/wiki/front-%EA%B0%9C%EB%B0%9C-%EA%B3%BC%EC%A0%95)
@@ -31,5 +32,7 @@
 
 ### 웹 
 <img width="100%"  src="https://github.com/user-attachments/assets/acdb6759-4ac7-456e-8d54-8997de67f250">
+<img width="100%"  src="https://github.com/user-attachments/assets/2ddea8ce-6553-4423-bee8-a04d8adaa3d6">
 
 ### 앱
+
