@@ -25,5 +25,11 @@
 - [서버 배포](https://github.com/overwell24/wireless-network/wiki/%EC%84%9C%EB%B2%84-%EB%B0%B0%ED%8F%AC)
 ## 프로젝트 회고
 - [회고록](https://github.com/overwell24/wireless-network/wiki/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%ED%9A%8C%EA%B3%A0%EB%A1%9D)
-  
+
 ## 프로젝트 작동화면
+[시연 영상]()
+
+### 웹 
+<img width="100%"  src="https://github.com/user-attachments/assets/acdb6759-4ac7-456e-8d54-8997de67f250">
+
+### 앱
