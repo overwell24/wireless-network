@@ -36,11 +36,9 @@
 
 
 ### 앱
-### 앱
-### 앱
 <div align="center">
- <img width="25%" src="https://github.com/user-attachments/assets/7a72b436-d98a-4656-93f3-098a57a235f1">
- <img width="25%" src="https://github.com/user-attachments/assets/96b6490b-60f5-4dee-bafa-6b7723f19b76">
- <img width="25%" src="https://github.com/user-attachments/assets/8609084a-8af3-4c67-9c77-b69b0a85830a">
- <img width="25%" src="https://github.com/user-attachments/assets/7dbe2409-da56-4516-ab6f-3870f1ea22fd">
+  <img width="22%" src="https://github.com/user-attachments/assets/7a72b436-d98a-4656-93f3-098a57a235f1">
+  <img width="22%" src="https://github.com/user-attachments/assets/96b6490b-60f5-4dee-bafa-6b7723f19b76">
+  <img width="22%" src="https://github.com/user-attachments/assets/8609084a-8af3-4c67-9c77-b69b0a85830a">
+  <img width="22%" src="https://github.com/user-attachments/assets/7dbe2409-da56-4516-ab6f-3870f1ea22fd">
 </div>
