@@ -1,9 +1,8 @@
 # wireless-network
 무선 네트워크 팀 프로젝트
 
-<details>
 ## 프로젝트 관리 문서
-  
+<details>
 <summary>프로젝트 관리 문서</summary>
 
 ### 프로젝트 필수 지식
