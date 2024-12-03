@@ -1,0 +1,3 @@
+[submodule "front/swift App"]
+	path = front/swift App
+	url = https://github.com/overwell24/wireless-network.git
